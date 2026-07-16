@@ -1,0 +1,198 @@
+{
+  "info": {
+    "name": "TinderHW3 API",
+    "description": "Ready-to-use requests for the TinderHW3 full-stack PoC API (Express + SQL Server). Base URL is stored in the {{baseUrl}} collection variable (http://localhost:3000). Make sure the server is running (npm start) before sending requests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Users (CRUD)",
+      "item": [
+        {
+          "name": "GET — All users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"]
+            },
+            "description": "List every user (account + profile)."
+          }
+        },
+        {
+          "name": "GET — Users filtered (Female, sorted by age)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users?gender=F&sort=age_asc&minAge=25&maxAge=35",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"],
+              "query": [
+                { "key": "gender", "value": "F" },
+                { "key": "sort", "value": "age_asc" },
+                { "key": "minAge", "value": "25" },
+                { "key": "maxAge", "value": "35" },
+                { "key": "search", "value": "", "disabled": true },
+                { "key": "city", "value": "Tel Aviv", "disabled": true }
+              ]
+            },
+            "description": "Filtering example. Enable/disable query params (checkboxes) to experiment: search, gender (M/F/O), minAge, maxAge, city, sort (name|age_asc|age_desc|city|newest)."
+          }
+        },
+        {
+          "name": "GET — Single user by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/5",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "5"]
+            },
+            "description": "Full details of one user. Change the 5 to any user_id."
+          }
+        },
+        {
+          "name": "POST — Create user",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"janed\",\n  \"email\": \"jane@example.com\",\n  \"password\": \"secret123\",\n  \"first_name\": \"Jane\",\n  \"last_name\": \"Doe\",\n  \"birth_date\": \"1996-04-10\",\n  \"gender\": \"F\",\n  \"bio\": \"Created via Postman\",\n  \"location_name\": \"Tel Aviv\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"]
+            },
+            "description": "Create a new user + profile. Required: username, email, password, first_name, last_name, birth_date, gender. Returns the new user_id. (Change username/email if it already exists → 409.)"
+          }
+        },
+        {
+          "name": "PUT — Update user",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bio\": \"Updated via Postman\",\n  \"location_name\": \"Haifa\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/5",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "5"]
+            },
+            "description": "Update any subset of fields for user 5. You can send just the fields you want to change."
+          }
+        },
+        {
+          "name": "DELETE — Delete user",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/5",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "5"]
+            },
+            "description": "Delete user 5 and every related row (swipes, matches, photos, etc.). Change the ID first — do not delete a user you still need!"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profiles & Matching",
+      "item": [
+        {
+          "name": "GET — All profiles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/profiles",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "profiles"]
+            },
+            "description": "All profiles with primary photo and computed age (used by the swipe UI)."
+          }
+        },
+        {
+          "name": "POST — Swipe (like/dislike)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"swiperId\": 1,\n  \"swipedId\": 12,\n  \"swipeType\": \"like\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/swipes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "swipes"]
+            },
+            "description": "Record a swipe. swipeType = like | dislike | superlike. Returns match:true if the other side already liked back."
+          }
+        },
+        {
+          "name": "GET — My matches",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/matches/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "matches", "1"]
+            },
+            "description": "Everyone user 1 has matched with."
+          }
+        },
+        {
+          "name": "GET — My likes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/likes/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "likes", "1"]
+            },
+            "description": "Everyone user 1 has liked, flagged with is_mutual."
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET — Health check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "health"]
+        },
+        "description": "Quick liveness check — should return { status: \"ok\" }."
+      }
+    }
+  ]
+}

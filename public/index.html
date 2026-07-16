@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TinderHW3</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ============ LANDING / AUTH SCREEN (shown when logged out) ============ -->
+  <div id="authScreen">
+    <div class="auth-card">
+      <div class="auth-brand">
+        <div class="auth-logo">💜</div>
+        <h1>TinderHW3</h1>
+        <p>Sign in to start matching</p>
+      </div>
+
+      <div class="auth-toggle">
+        <button id="tabLogin" class="active" type="button">Log In</button>
+        <button id="tabRegister" type="button">Sign Up</button>
+      </div>
+
+      <!-- Login -->
+      <form id="loginForm" class="auth-form" autocomplete="off">
+        <input name="identifier" placeholder="Username or email" required />
+        <input name="password" type="password" placeholder="Password" required />
+        <div id="loginError" class="auth-error"></div>
+        <button type="submit" class="auth-submit">Log In →</button>
+      </form>
+
+      <!-- Register -->
+      <form id="registerForm" class="auth-form" style="display:none" autocomplete="off">
+        <div class="auth-row">
+          <input name="first_name" placeholder="First name" required />
+          <input name="last_name" placeholder="Last name" required />
+        </div>
+        <input name="username" placeholder="Username" required />
+        <input name="email" type="email" placeholder="Email" required />
+        <input name="password" type="password" placeholder="Password" required />
+        <div class="auth-row">
+          <input name="birth_date" type="date" required title="Birth date" />
+          <select name="gender" required>
+            <option value="">Gender…</option>
+            <option value="M">Male</option>
+            <option value="F">Female</option>
+            <option value="O">Other</option>
+          </select>
+        </div>
+        <input name="location_name" placeholder="City (optional)" />
+        <div id="registerError" class="auth-error"></div>
+        <button type="submit" class="auth-submit">Create account →</button>
+      </form>
+
+      <p class="auth-demo">
+        Demo accounts — admin: <b>admin / admin123</b> · user: <b>alice / alice123</b>
+      </p>
+    </div>
+  </div>
+
+  <!-- ============ TOP-RIGHT BAR (shown when logged in) ============ -->
+  <div id="topbar" style="display:none">
+    <button id="adminBtn" title="Admin — user management" aria-label="Admin" style="display:none">⚙️</button>
+    <button id="meBtn" title="My area" aria-label="My area">👤</button>
+  </div>
+
+  <!-- ============ MAIN APP (shown when logged in) ============ -->
+  <div id="appRoot" style="display:none">
+    <header>
+      <h1>TinderHW3</h1>
+      <p>Discover people near you</p>
+    </header>
+
+    <div class="toolbar">
+      <button id="loadBtn">🔄 Reload</button>
+    </div>
+
+    <div id="controls">
+      <div class="field">
+        <label for="search">Search</label>
+        <input id="search" type="text" placeholder="🔍 name or city…" />
+      </div>
+      <div class="field">
+        <label for="genderFilter">Gender</label>
+        <select id="genderFilter">
+          <option value="">All</option>
+          <option value="M">Male</option>
+          <option value="F">Female</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="minAge">Min age</label>
+        <input id="minAge" type="number" min="18" max="100" placeholder="18" style="width:90px" />
+      </div>
+      <div class="field">
+        <label for="maxAge">Max age</label>
+        <input id="maxAge" type="number" min="18" max="100" placeholder="99" style="width:90px" />
+      </div>
+      <div class="field">
+        <label for="sortBy">Sort by</label>
+        <select id="sortBy">
+          <option value="">Default</option>
+          <option value="age_asc">Age ↑</option>
+          <option value="age_desc">Age ↓</option>
+          <option value="name">Name</option>
+          <option value="city">City</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="hint" class="hint" style="display:none">
+      Tip: use <kbd>←</kbd> to Nope and <kbd>→</kbd> to Like the highlighted card.
+    </div>
+
+    <div id="status"></div>
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <!-- ============ PERSONAL AREA ============ -->
+  <div id="meModal" class="modal-overlay">
+    <div class="modal me-panel">
+      <button class="close-modal me-x" aria-label="Close">✕</button>
+
+      <div id="meView">
+        <div class="me-header">
+          <img id="meAvatar" alt="me" />
+          <h2 id="meName"></h2>
+          <span id="meHandle" class="me-handle"></span>
+          <span id="meAdminTag" class="me-admin-tag" style="display:none">ADMIN</span>
+        </div>
+        <div class="me-stats">
+          <div><b id="statLikes">–</b><span>Likes sent</span></div>
+          <div><b id="statMatches">–</b><span>Matches</span></div>
+          <div><b id="statAge">–</b><span>Age</span></div>
+        </div>
+        <div id="meBio" class="me-bio"></div>
+        <div class="me-actions">
+          <button id="likesBtn" class="me-action" style="display:none">💌 My Likes</button>
+          <button id="matchesBtn" class="me-action" style="display:none">💕 My Matches</button>
+          <button id="meEditBtn" class="me-action">✏️ Edit my profile</button>
+        </div>
+        <button id="logoutBtn" class="logout-btn">Log out</button>
+      </div>
+
+      <!-- Edit view -->
+      <form id="meForm" class="me-edit" style="display:none" autocomplete="off">
+        <h2>Edit my profile</h2>
+        <div class="form-grid">
+          <label>First name <input name="first_name" required /></label>
+          <label>Last name <input name="last_name" required /></label>
+          <label>City <input name="location_name" /></label>
+          <label>Gender
+            <select name="gender">
+              <option value="M">Male</option>
+              <option value="F">Female</option>
+              <option value="O">Other</option>
+            </select>
+          </label>
+          <label>Birth date <input name="birth_date" type="date" /></label>
+          <label>Photo URL <input name="profile_photo_url" placeholder="https://…" /></label>
+          <label class="span2">Bio <textarea name="bio" rows="2"></textarea></label>
+          <div class="span2 me-sep">Account</div>
+          <label>Email <input name="email" type="email" /></label>
+          <label>New password <input name="password" type="password" placeholder="(leave blank to keep)" /></label>
+        </div>
+        <div id="meError" class="form-error"></div>
+        <div class="form-actions">
+          <button type="button" id="meCancelBtn" class="ghost-btn">Cancel</button>
+          <button type="submit" class="primary-btn">💾 Save changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ ADMIN: user management ============ -->
+  <div id="adminModal" class="modal-overlay">
+    <div class="modal admin-panel">
+      <div class="admin-head">
+        <h2>⚙️ User Management</h2>
+        <button class="close-modal admin-close">✕</button>
+      </div>
+      <div class="admin-controls">
+        <input id="adminSearch" type="text" placeholder="🔍 name / username / email" />
+        <select id="adminGender">
+          <option value="">All genders</option>
+          <option value="M">Male</option>
+          <option value="F">Female</option>
+          <option value="O">Other</option>
+        </select>
+        <select id="adminSort">
+          <option value="">Sort: default</option>
+          <option value="name">Name</option>
+          <option value="age_asc">Age ↑</option>
+          <option value="age_desc">Age ↓</option>
+          <option value="city">City</option>
+          <option value="newest">Newest</option>
+        </select>
+        <button id="addUserBtn" class="primary-btn">➕ Add User</button>
+      </div>
+      <div id="adminStatus" class="admin-status"></div>
+      <div id="adminList" class="admin-list"></div>
+    </div>
+  </div>
+
+  <!-- Add / Edit user form (admin) -->
+  <div id="userFormModal" class="modal-overlay">
+    <div class="modal">
+      <h2 id="formTitle">Add User</h2>
+      <form id="userForm" autocomplete="off">
+        <div class="form-grid">
+          <label>Username <input name="username" required /></label>
+          <label>Email <input name="email" type="email" required /></label>
+          <label id="pwdLabel">Password <input name="password" type="password" /></label>
+          <label>Gender
+            <select name="gender" required>
+              <option value="M">Male</option>
+              <option value="F">Female</option>
+              <option value="O">Other</option>
+            </select>
+          </label>
+          <label>First name <input name="first_name" required /></label>
+          <label>Last name <input name="last_name" required /></label>
+          <label>Birth date <input name="birth_date" type="date" required /></label>
+          <label>City <input name="location_name" /></label>
+          <label class="span2">Photo URL <input name="profile_photo_url" placeholder="https://…" /></label>
+          <label class="span2">Bio <textarea name="bio" rows="2"></textarea></label>
+        </div>
+        <div id="formError" class="form-error"></div>
+        <div class="form-actions">
+          <button type="button" class="close-modal ghost-btn">Cancel</button>
+          <button type="submit" class="primary-btn">💾 Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- My Likes panel -->
+  <div id="likesModal" class="modal-overlay">
+    <div class="modal matches-panel">
+      <h2 class="matches-title">💌 My Likes</h2>
+      <p class="matches-sub"></p>
+      <div id="likesList" class="matches-list"></div>
+      <button class="close-modal">Close</button>
+    </div>
+  </div>
+
+  <!-- My Matches panel -->
+  <div id="matchesModal" class="modal-overlay">
+    <div class="modal matches-panel">
+      <h2 class="matches-title">💕 My Matches</h2>
+      <p class="matches-sub"></p>
+      <div id="matchesList" class="matches-list"></div>
+      <button class="close-modal">Close</button>
+    </div>
+  </div>
+
+  <!-- It's a Match! modal -->
+  <div id="matchModal" class="modal-overlay">
+    <div class="modal">
+      <div class="avatars"></div>
+      <h2>It's a Match! 🎉</h2>
+      <p class="match-name"></p>
+      <button class="close-modal">Keep swiping</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script src="admin.js"></script>
+  <script src="auth.js"></script>
+</body>
+</html>

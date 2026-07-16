@@ -1,0 +1,13 @@
+# Secrets — never commit real credentials
+.env
+backend/.env
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Local MSSQL backup (superseded by the Postgres version)
+_mssql_backup/
+
+# OS
+.DS_Store
