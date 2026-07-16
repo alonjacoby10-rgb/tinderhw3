@@ -1,29 +1,33 @@
 # TinderHW3 — Full-Stack PoC
 
-A small proof-of-concept full-stack app:
+🌐 **Live:** https://tinderhw3.onrender.com
+&nbsp;·&nbsp; 🔑 Demo — admin: `admin` / `admin123` · user: `alice` / `alice123`
 
-- **Database:** Microsoft SQL Server 2022 (running in Docker), database `TinderHW3`.
-- **Backend:** Node.js + Express, using the `mssql` driver. Exposes `GET /api/profiles`.
-- **Frontend:** a single `index.html` (vanilla JS/CSS). A "Load Profiles" button
-  fetches the API and renders each profile as a Tinder-style card.
+A cloud-hosted proof-of-concept full-stack dating app:
 
-The API joins the `profiles` table with `photos` (the primary photo) so cards show
-real photos, and computes each person's **age** from `birth_date`.
+- **Database:** PostgreSQL on **[Neon](https://neon.tech)** (cloud).
+- **Backend:** Node.js + Express, using the `pg` driver. REST API for auth,
+  users (CRUD), profiles, swipes & matches.
+- **Frontend:** vanilla HTML/CSS/JS — a login/register landing screen, a
+  Tinder-style swipe deck, a personal area, and an admin panel.
+- **Hosting:** the backend (which also serves the frontend) runs on **[Render](https://render.com)**.
+
+The API joins `profiles` with `photos` (the primary photo) so cards show real
+photos, and computes each person's **age** from `birth_date`.
+
+> **Architecture:** browser → Render (Express + static frontend) → Neon (PostgreSQL).
+> Every push to `main` on GitHub triggers an automatic redeploy on Render.
 
 ---
 
-## Prerequisites
+## Prerequisites (local development)
 
-1. **Docker Desktop** installed and running.
-2. **SQL Server** running in a container named `sqlserver`, with the `TinderHW3`
-   database and its tables already created. It should be reachable at
-   `localhost:1433` (user `sa`).
-3. **Node.js** (v18+) installed. Check with: `node -v`
+1. **Node.js** (v18+) installed. Check with: `node -v`
+2. A **PostgreSQL connection string** — either your Neon database, or a local
+   Postgres. Put it in `backend/.env` as `DATABASE_URL` (see `.env.example`).
 
-> If SQL Server isn't running yet, start it with:
-> ```bash
-> docker start sqlserver
-> ```
+> First time only — load the schema + seed data into the database by running
+> `matchme_postgres.sql` against it.
 
 ---
 
@@ -53,7 +57,7 @@ Then open **http://localhost:3000** in your browser and click **“Load Profiles
 בניית מערכת שיעור 3/
 ├── backend/
 │   ├── server.js        # Express app: /api/profiles + serves the frontend
-│   ├── db.js            # SQL Server connection pool
+│   ├── db.js            # PostgreSQL (Neon) connection pool
 │   ├── package.json     # dependencies + "start" script
 │   ├── .env             # your real credentials (ignored by git)
 │   └── .env.example     # template
@@ -138,8 +142,10 @@ Returns `{ "status": "ok" }` — a quick liveness check.
 
 ## Troubleshooting
 
-- **“Could not fetch profiles”** → make sure the container is up: `docker ps`.
-  If not: `docker start sqlserver`.
-- **Login failed** → confirm the password in `.env` matches the container's
-  `SA_PASSWORD` (`YourStrong@Passw0rd`).
-- **Port 3000 in use** → change `PORT` in `.env`.
+- **“Could not fetch profiles”** → check that `DATABASE_URL` in `.env` (or in
+  Render's environment variables) is correct and the Neon database is awake.
+- **Login failed** → use a known demo account (`admin`/`admin123` or
+  `alice`/`alice123`), or register a new one.
+- **First request is slow (~40s)** → Render's free tier sleeps after 15 min of
+  inactivity; the first request wakes it up. This is normal.
+- **Port 3000 in use (local)** → change `PORT` in `.env`.
