@@ -223,12 +223,28 @@
   // When opening Likes/Matches from the personal area, close the personal area.
   [likesBtn, matchesBtn].forEach((b) => b && b.addEventListener('click', () => meModal.classList.remove('open')));
 
+  // Re-fetch the logged-in user from the server so a cached session can never
+  // show stale data (e.g. an old profile photo).
+  async function refreshSession() {
+    if (!window.SESSION || !window.SESSION.user_id) return;
+    try {
+      const res = await fetch(`/api/auth/me/${window.SESSION.user_id}`);
+      if (!res.ok) return;
+      const body = await res.json();
+      if (body.user) {
+        saveSession(body.user);
+        setMeButtonAvatar(body.user.photo_url);
+      }
+    } catch { /* ignore — keep the cached session */ }
+  }
+
   // ---- Boot: restore session or show the auth screen ----
   const saved = localStorage.getItem(KEY);
   if (saved) {
     try {
       window.SESSION = JSON.parse(saved);
       enterApp();
+      refreshSession(); // update any stale cached fields in the background
     } catch {
       showTab('login');
     }
