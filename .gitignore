@@ -9,5 +9,8 @@ npm-debug.log*
 # Local MSSQL backup (superseded by the Postgres version)
 _mssql_backup/
 
+# Local visual-QA harness (not part of the app)
+public/preview.html
+
 # OS
 .DS_Store

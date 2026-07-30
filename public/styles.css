@@ -86,7 +86,7 @@ header p { color: var(--muted); margin-top: 6px; font-size: 1rem; }
 }
 #controls label { font-size: .72rem; color: var(--muted); padding-left: 8px; text-transform: uppercase; letter-spacing: .5px; }
 
-input, select {
+input, select, textarea {
   padding: 11px 14px;
   border-radius: 12px;
   border: 1px solid #2c313c;
@@ -96,8 +96,8 @@ input, select {
   outline: none;
   transition: border-color .15s ease;
 }
-input:focus, select:focus { border-color: var(--pink); }
-input::placeholder { color: #6b7280; }
+input:focus, select:focus, textarea:focus { border-color: var(--pink); }
+input::placeholder, textarea::placeholder { color: #6b7280; }
 #search { min-width: 220px; }
 
 .hint { text-align: center; color: var(--muted); font-size: .8rem; margin-bottom: 16px; }
@@ -233,12 +233,17 @@ input::placeholder { color: #6b7280; }
   border: 3px solid var(--pink);
 }
 .modal .avatars img:last-child { margin-left: -18px; border-color: var(--orange); }
-.modal button {
+/* Gradient pill for the PRIMARY modal buttons only (the match popup and the
+   panel "Close"/"Keep swiping" buttons). A blanket `.modal button` rule used to
+   clobber every neutral button (me-actions, logout, ghost) — scoped now. */
+#matchModal .close-modal,
+.matches-panel .close-modal {
   background: linear-gradient(90deg, var(--orange), var(--pink));
   color: #fff; border: none; padding: 12px 28px;
   border-radius: 999px; font-weight: 600; cursor: pointer; font-size: 1rem;
 }
-.modal button:hover { opacity: .92; }
+#matchModal .close-modal:hover,
+.matches-panel .close-modal:hover { opacity: .92; transform: translateY(-1px); }
 
 /* ---- My Matches panel ---- */
 .matches-panel { max-width: 440px; text-align: left; }
@@ -286,8 +291,8 @@ input::placeholder { color: #6b7280; }
 .admin-panel { max-width: 860px; width: 100%; text-align: left; max-height: 88vh; display: flex; flex-direction: column; }
 .admin-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
 .admin-head h2 { -webkit-text-fill-color: initial; color: var(--text); font-size: 1.5rem; }
-.admin-close { background: transparent; border: none; color: var(--muted); font-size: 1.3rem; cursor: pointer; padding: 4px 10px; }
-.admin-close:hover { color: var(--text); }
+.admin-close, .stats-close { background: transparent; border: none; color: var(--muted); font-size: 1.3rem; cursor: pointer; padding: 4px 10px; }
+.admin-close:hover, .stats-close:hover { color: var(--text); }
 
 .admin-controls { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; align-items: center; }
 .admin-controls #adminSearch { flex: 1; min-width: 180px; }
@@ -351,7 +356,7 @@ input::placeholder { color: #6b7280; }
 .form-grid label { display: flex; flex-direction: column; gap: 4px; font-size: .78rem; color: var(--muted); }
 .form-grid label.span2 { grid-column: 1 / -1; }
 .form-grid input, .form-grid select, .form-grid textarea { font-size: .95rem; }
-.form-grid textarea { resize: vertical; font-family: inherit; }
+.form-grid textarea { resize: vertical; font-family: inherit; min-height: 58px; }
 .form-error { color: var(--red); font-size: .85rem; min-height: 18px; margin: 8px 0; text-align: center; }
 .form-actions { display: flex; gap: 10px; justify-content: flex-end; }
 

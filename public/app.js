@@ -72,10 +72,7 @@ function cardHtml(p) {
         ${superYou ? '<span class="super-ribbon">⭐ Superliked you</span>' : ''}
         <img src="${escapeHtml(p.photo_url) || FALLBACK_IMG}" alt="${escapeHtml(p.first_name)}"
              onerror="this.src='${FALLBACK_IMG}'">
-        <div class="name-age">
-          ${escapeHtml(p.first_name)} ${escapeHtml(p.last_name)}
-          <span class="age">${p.age != null ? ', ' + p.age : ''}</span>
-        </div>
+        <div class="name-age">${escapeHtml(p.first_name)} ${escapeHtml(p.last_name)}<span class="age">${p.age != null ? ', ' + p.age : ''}</span></div>
       </div>
       <div class="body">
         <div class="meta">
