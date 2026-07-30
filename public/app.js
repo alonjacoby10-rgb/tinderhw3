@@ -59,12 +59,14 @@ function renderSkeletons(n = 8) {
 }
 
 function cardHtml(p) {
+  const superYou = p.superliked_you;
   return `
-    <div class="card" data-id="${p.user_id}">
+    <div class="card${superYou ? ' superliked-you' : ''}" data-id="${p.user_id}">
       <div class="photo">
         <span class="stamp like-stamp">LIKE</span>
         <span class="stamp nope-stamp">NOPE</span>
         <span class="stamp super-stamp">SUPER</span>
+        ${superYou ? '<span class="super-ribbon">⭐ Superliked you</span>' : ''}
         <img src="${escapeHtml(p.photo_url) || FALLBACK_IMG}" alt="${escapeHtml(p.first_name)}"
              onerror="this.src='${FALLBACK_IMG}'">
         <div class="name-age">
@@ -79,9 +81,12 @@ function cardHtml(p) {
         </div>
         <div class="bio">${escapeHtml(p.bio) || '<em style="color:#666">No bio yet</em>'}</div>
         <div class="actions">
-          <button class="action-btn nope" data-act="dislike" title="Nope (←)">✖️</button>
-          <button class="action-btn super" data-act="superlike" title="Superlike (↑)">⭐</button>
-          <button class="action-btn like" data-act="like" title="Like (→)">❤️</button>
+          <button class="action-btn nope" data-act="dislike"
+                  data-tip="Nope — not interested. They won't know." title="Nope (←)">✖️</button>
+          <button class="action-btn super" data-act="superlike"
+                  data-tip="Superlike — you really like them. They'll see it before deciding." title="Superlike (↑)">⭐</button>
+          <button class="action-btn like" data-act="like"
+                  data-tip="Like — interested. It's a match only if they like you back." title="Like (→)">❤️</button>
         </div>
       </div>
     </div>`;
@@ -116,6 +121,9 @@ function applyFilters() {
     city:     (a, b) => (a.location_name || '').localeCompare(b.location_name || ''),
   }[sort];
   if (by) list = [...list].sort(by);
+
+  // People who superliked you jump the queue (as in the real app).
+  list = [...list.filter((p) => p.superliked_you), ...list.filter((p) => !p.superliked_you)];
 
   renderList(list);
 }
@@ -303,7 +311,9 @@ async function loadLikes() {
       <div class="match-row">
         <img src="${escapeHtml(l.photo_url) || FALLBACK_IMG}" onerror="this.src='${FALLBACK_IMG}'">
         <div class="info">
-          <span class="mname">${escapeHtml(l.first_name)} ${escapeHtml(l.last_name)}</span>
+          <span class="mname">${escapeHtml(l.first_name)} ${escapeHtml(l.last_name)}
+            ${l.swipetype === 'superlike' ? '<span class="super-tag" title="You superliked them">⭐ Superlike</span>' : ''}
+          </span>
           <span class="mcity">📍 ${escapeHtml(l.location_name) || 'Unknown'}</span>
         </div>
         ${l.is_mutual ? '<span class="mutual">Matched ✅</span>' : ''}
@@ -333,7 +343,8 @@ async function loadProfiles() {
   renderSkeletons();
 
   try {
-    const res = await fetch('/api/profiles');
+    const url = currentUserId != null ? `/api/profiles?viewer=${currentUserId}` : '/api/profiles';
+    const res = await fetch(url);
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
       throw new Error(body.error || `Server responded ${res.status}`);
@@ -348,6 +359,8 @@ async function loadProfiles() {
 
     controls.style.display = 'flex';
     hintEl.style.display = 'block';
+    const legend = document.getElementById('swipeLegend');
+    if (legend) legend.style.display = 'flex';
     matchesBtn.style.display = '';
     likesBtn.style.display = '';
     loadBtn.textContent = '🔄 Reload';

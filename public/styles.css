@@ -535,3 +535,53 @@ input::placeholder { color: #6b7280; }
   .card.liked, .card.noped, .card.superliked { animation-duration: .01ms; }
   .toast-item { transition: none; }
 }
+
+/* =====================================================================
+   SWIPE CLARITY — legend, button tooltips, incoming superlike
+   ===================================================================== */
+.swipe-legend {
+  flex-wrap: wrap; justify-content: center; gap: 8px 20px;
+  max-width: 720px; margin: 0 auto 12px; padding: 12px 18px;
+  background: rgba(27, 31, 39, .55); border: 1px solid #22262f; border-radius: 14px;
+}
+.lg-item { display: inline-flex; align-items: center; gap: 7px; font-size: .88rem; font-weight: 600; color: var(--text); }
+.lg-item em { font-style: normal; color: var(--muted); font-weight: 400; }
+.lg-ic { font-size: 1.05rem; line-height: 1; }
+.lg-ic.super { filter: drop-shadow(0 0 4px rgba(74,159,255,.6)); }
+
+/* Hover tooltips that explain each action. */
+.action-btn { position: relative; }
+.action-btn[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute; bottom: calc(100% + 10px); left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  width: max-content; max-width: 190px;
+  background: #0b0d11; color: var(--text); border: 1px solid #2c313c;
+  padding: 8px 11px; border-radius: 10px;
+  font-size: .76rem; font-weight: 500; line-height: 1.35; text-align: center;
+  opacity: 0; pointer-events: none; z-index: 6;
+  box-shadow: 0 10px 26px rgba(0,0,0,.55);
+  transition: opacity .15s ease, transform .15s ease;
+}
+.action-btn[data-tip]:hover::after { opacity: 1; transform: translateX(-50%) translateY(0); }
+/* Keep the outer tooltips from spilling past the card edges. */
+.action-btn.nope[data-tip]::after { left: 0; transform: translateX(0) translateY(4px); }
+.action-btn.nope[data-tip]:hover::after { transform: translateX(0) translateY(0); }
+.action-btn.like[data-tip]::after { left: auto; right: 0; transform: translateX(0) translateY(4px); }
+.action-btn.like[data-tip]:hover::after { transform: translateX(0) translateY(0); }
+
+/* A profile that superliked YOU — blue glow + ribbon, surfaced first. */
+.card.superliked-you { box-shadow: 0 0 0 2px var(--blue), 0 12px 34px rgba(74,159,255,.4); }
+.super-ribbon {
+  position: absolute; top: 12px; left: 12px; z-index: 3;
+  background: linear-gradient(90deg, var(--blue), #6db3ff); color: #fff;
+  font-size: .74rem; font-weight: 700; padding: 4px 11px; border-radius: 999px;
+  box-shadow: 0 4px 14px rgba(74,159,255,.55);
+}
+
+/* "You superliked them" tag in the My Likes list. */
+.super-tag {
+  display: inline-block; margin-left: 6px; vertical-align: middle;
+  background: rgba(74, 159, 255, .16); color: var(--blue);
+  font-size: .66rem; font-weight: 700; padding: 1px 7px; border-radius: 999px;
+}

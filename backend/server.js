@@ -338,14 +338,23 @@ app.delete('/api/users/:id', async (req, res) => {
 //  PROFILES / SWIPES / MATCHES / LIKES
 // ===========================================================================
 app.get('/api/profiles', async (req, res) => {
+  // Optional ?viewer=<id>: flag profiles that have *superliked* the viewer,
+  // so the UI can surface them (just like the real Tinder blue star).
+  const viewer = parseInt(req.query.viewer, 10);
+  const hasViewer = Number.isInteger(viewer);
+  const superCol = hasViewer
+    ? `EXISTS (SELECT 1 FROM swipes s
+               WHERE s.swiper_id = p.user_id AND s.swiped_id = $1 AND s.swipetype = 'superlike')`
+    : 'false';
   try {
     const { rows } = await pool.query(`
       SELECT p.user_id, p.first_name, p.last_name, p.gender, p.bio, p.location_name, p.birth_date,
              ${AGE_EXPR} AS age,
-             COALESCE(ph.url, p.profile_photo_url) AS photo_url
+             COALESCE(ph.url, p.profile_photo_url) AS photo_url,
+             ${superCol} AS superliked_you
       FROM profiles p
       LEFT JOIN photos ph ON p.user_id = ph.user_id AND ph.is_primary = 1
-      ORDER BY p.user_id`);
+      ORDER BY p.user_id`, hasViewer ? [viewer] : []);
     return res.status(200).json(rows);
   } catch (err) {
     console.error('Error in GET /api/profiles:', err.message);
