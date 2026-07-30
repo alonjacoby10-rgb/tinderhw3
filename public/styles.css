@@ -15,21 +15,25 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: radial-gradient(1200px 600px at 50% -10%, #2a1b2b, var(--bg));
+  background:
+    radial-gradient(900px 480px at 12% -8%, rgba(255,120,84,.16), transparent 60%),
+    radial-gradient(900px 520px at 88% -6%, rgba(253,38,125,.18), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
   color: var(--text);
   min-height: 100vh;
-  padding: 40px 20px;
+  padding: 36px 20px 64px;
 }
 
-header { text-align: center; margin-bottom: 24px; }
+header { text-align: center; margin-bottom: 22px; }
 header h1 {
-  font-size: 2.4rem;
+  font-size: 2.6rem; font-weight: 800;
   background: linear-gradient(90deg, var(--orange), var(--pink));
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent;
-  letter-spacing: -1px;
+  letter-spacing: -1.2px;
 }
-header p { color: var(--muted); margin-top: 8px; }
+header p { color: var(--muted); margin-top: 6px; font-size: 1rem; }
 
 /* ---- Toolbar / controls ---- */
 .toolbar { display: flex; justify-content: center; gap: 12px; margin-bottom: 16px; }
@@ -44,24 +48,38 @@ header p { color: var(--muted); margin-top: 8px; }
 #matchesBtn:hover, #likesBtn:hover { transform: translateY(-2px); background: rgba(253, 38, 125, .12); }
 
 #loadBtn {
-  background: linear-gradient(90deg, var(--orange), var(--pink));
-  color: #fff; border: none;
-  padding: 14px 34px; font-size: 1.05rem; font-weight: 600;
+  background: rgba(27, 31, 39, .7); color: var(--muted);
+  border: 1px solid #2c313c;
+  padding: 10px 22px; font-size: .92rem; font-weight: 600;
   border-radius: 999px; cursor: pointer;
-  transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease;
-  box-shadow: 0 8px 24px rgba(253, 38, 125, .35);
+  transition: transform .15s ease, color .15s ease, border-color .15s ease, opacity .15s ease;
 }
-#loadBtn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(253, 38, 125, .45); }
+#loadBtn:hover:not(:disabled) { transform: translateY(-1px); color: var(--text); border-color: #3a4150; }
 #loadBtn:disabled { opacity: .6; cursor: not-allowed; }
+
+/* Shared gradient pill (empty-state reload, etc.). */
+.pill-btn {
+  background: linear-gradient(90deg, var(--orange), var(--pink));
+  color: #fff; border: none; cursor: pointer;
+  padding: 12px 28px; font-size: 1rem; font-weight: 600; border-radius: 999px;
+  box-shadow: 0 8px 24px rgba(253, 38, 125, .35);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.pill-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(253, 38, 125, .45); }
 
 #controls {
   display: none;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
   justify-content: center;
-  align-items: center;
-  max-width: 1100px;
-  margin: 0 auto 8px;
+  align-items: flex-end;
+  max-width: 900px;
+  margin: 0 auto 14px;
+  padding: 16px 18px;
+  background: rgba(27, 31, 39, .5);
+  border: 1px solid #22262f;
+  border-radius: 18px;
+  backdrop-filter: blur(6px);
 }
 #controls .field {
   display: flex; flex-direction: column; gap: 4px;
@@ -102,14 +120,15 @@ input::placeholder { color: #6b7280; }
 
 .card {
   background: var(--card);
-  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.05);
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,.4);
+  box-shadow: 0 12px 34px rgba(0,0,0,.45);
   transition: transform .18s ease, box-shadow .18s ease;
   display: flex; flex-direction: column;
   animation: fadeIn .4s ease both;
 }
-.card:hover { transform: translateY(-6px); box-shadow: 0 18px 40px rgba(0,0,0,.55); }
+.card:hover { transform: translateY(-6px); box-shadow: 0 22px 46px rgba(0,0,0,.6); }
 .card.focused { outline: 3px solid var(--pink); outline-offset: 2px; }
 .card.liked { animation: swipeRight .45s ease forwards; }
 .card.noped { animation: swipeLeft .45s ease forwards; }
@@ -137,13 +156,14 @@ input::placeholder { color: #6b7280; }
 
 .card .name-age {
   position: absolute; bottom: 0; left: 0; right: 0;
-  padding: 40px 16px 12px;
-  background: linear-gradient(transparent, rgba(0,0,0,.85));
-  font-size: 1.2rem; font-weight: 700;
+  padding: 44px 16px 14px;
+  background: linear-gradient(transparent, rgba(0,0,0,.9));
+  font-size: 1.28rem; font-weight: 700; letter-spacing: -.3px;
+  text-shadow: 0 1px 8px rgba(0,0,0,.4);
 }
-.card .name-age .age { font-weight: 400; color: #e9e9e9; }
+.card .name-age .age { font-weight: 400; color: #eef0f5; }
 
-.card .body { padding: 14px 16px 16px; }
+.card .body { padding: 15px 16px 18px; }
 .card .meta { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: .88rem; margin-bottom: 10px; }
 .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: .78rem; font-weight: 600; }
 .badge.male   { background: rgba(74, 159, 255, .16); color: var(--blue); }
@@ -152,21 +172,26 @@ input::placeholder { color: #6b7280; }
 
 .card .bio { color: #cdd2db; font-size: .92rem; line-height: 1.45; min-height: 2.6em; }
 
-.actions { display: flex; gap: 12px; margin-top: 14px; }
+/* Round, floating action buttons — like a real dating app. Nope and Like are
+   the two large primaries; Superlike is the smaller accent between them. */
+.actions { display: flex; gap: 16px; margin-top: 16px; justify-content: center; align-items: center; }
 .action-btn {
-  flex: 1; border: none; cursor: pointer;
-  padding: 10px 0; border-radius: 12px;
-  font-size: 1.2rem; font-weight: 700;
-  transition: transform .12s ease, background .15s ease;
+  flex: 0 0 auto; cursor: pointer;
+  width: 56px; height: 56px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem; line-height: 1;
+  background: #10131a; border: 1.5px solid #2c313c;
+  box-shadow: 0 6px 16px rgba(0,0,0,.35);
+  transition: transform .14s ease, box-shadow .18s ease, background .15s ease, border-color .15s ease;
 }
-.action-btn:hover { transform: scale(1.06); }
-.nope { background: rgba(255, 107, 107, .12); color: var(--red); }
-.nope:hover { background: rgba(255, 107, 107, .22); }
-.like { background: rgba(45, 211, 111, .12); color: var(--green); }
-.like:hover { background: rgba(45, 211, 111, .22); }
-/* Superlike is the smaller, secondary action between Nope and Like. */
-.super { flex: 0 0 46px; background: rgba(74, 159, 255, .12); color: var(--blue); }
-.super:hover { background: rgba(74, 159, 255, .22); }
+.action-btn:hover { transform: translateY(-4px) scale(1.05); }
+.action-btn:active { transform: translateY(-1px) scale(.97); }
+.nope { color: var(--red); }
+.nope:hover  { border-color: var(--red);  background: rgba(255,107,107,.12); box-shadow: 0 10px 24px rgba(255,107,107,.35); }
+.like { color: var(--green); }
+.like:hover  { border-color: var(--green); background: rgba(45,211,111,.12); box-shadow: 0 10px 24px rgba(45,211,111,.35); }
+.super { width: 46px; height: 46px; font-size: 1.15rem; color: var(--blue); }
+.super:hover { border-color: var(--blue); background: rgba(74,159,255,.14); box-shadow: 0 10px 24px rgba(74,159,255,.45); }
 
 /* ---- Skeleton loading ---- */
 .skeleton { pointer-events: none; }
@@ -202,7 +227,7 @@ input::placeholder { color: #6b7280; }
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
 }
 .modal p { color: var(--muted); margin-bottom: 20px; }
-.modal .avatars { display: flex; justify-content: center; gap: -10px; margin-bottom: 20px; }
+.modal .avatars { display: flex; justify-content: center; margin-bottom: 20px; }
 .modal .avatars img {
   width: 92px; height: 92px; border-radius: 50%; object-fit: cover;
   border: 3px solid var(--pink);
@@ -555,20 +580,24 @@ input::placeholder { color: #6b7280; }
   content: attr(data-tip);
   position: absolute; bottom: calc(100% + 10px); left: 50%;
   transform: translateX(-50%) translateY(4px);
-  width: max-content; max-width: 190px;
+  width: max-content; max-width: 150px;
   background: #0b0d11; color: var(--text); border: 1px solid #2c313c;
   padding: 8px 11px; border-radius: 10px;
-  font-size: .76rem; font-weight: 500; line-height: 1.35; text-align: center;
+  font-size: .74rem; font-weight: 500; line-height: 1.35; text-align: center;
   opacity: 0; pointer-events: none; z-index: 6;
   box-shadow: 0 10px 26px rgba(0,0,0,.55);
   transition: opacity .15s ease, transform .15s ease;
 }
 .action-btn[data-tip]:hover::after { opacity: 1; transform: translateX(-50%) translateY(0); }
-/* Keep the outer tooltips from spilling past the card edges. */
-.action-btn.nope[data-tip]::after { left: 0; transform: translateX(0) translateY(4px); }
-.action-btn.nope[data-tip]:hover::after { transform: translateX(0) translateY(0); }
-.action-btn.like[data-tip]::after { left: auto; right: 0; transform: translateX(0) translateY(4px); }
-.action-btn.like[data-tip]:hover::after { transform: translateX(0) translateY(0); }
+/* The tooltip may extend past the card — let it show. A little tip arrow too. */
+.action-btn[data-tip]::before {
+  content: ""; position: absolute; bottom: calc(100% + 4px); left: 50%;
+  transform: translateX(-50%); border: 6px solid transparent; border-top-color: #0b0d11;
+  opacity: 0; pointer-events: none; z-index: 6; transition: opacity .15s ease;
+}
+.action-btn[data-tip]:hover::before { opacity: 1; }
+.card:hover { overflow: visible; }
+.card:hover .photo { border-radius: 20px 20px 0 0; overflow: hidden; }
 
 /* A profile that superliked YOU — blue glow + ribbon, surfaced first. */
 .card.superliked-you { box-shadow: 0 0 0 2px var(--blue), 0 12px 34px rgba(74,159,255,.4); }
@@ -585,3 +614,31 @@ input::placeholder { color: #6b7280; }
   background: rgba(74, 159, 255, .16); color: var(--blue);
   font-size: .66rem; font-weight: 700; padding: 1px 7px; border-radius: 999px;
 }
+
+/* ---- "All caught up" empty deck state ---- */
+.caught-up {
+  grid-column: 1 / -1; text-align: center; padding: 52px 20px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  animation: fadeIn .4s ease both;
+}
+.cu-emoji { font-size: 3rem; animation: popIn .5s cubic-bezier(.2,.8,.3,1.2); }
+.caught-up h3 { font-size: 1.45rem; font-weight: 800; }
+.caught-up p { color: var(--muted); margin-bottom: 10px; max-width: 340px; line-height: 1.5; }
+
+/* ---- "Likes You" incoming list ---- */
+.match-row.is-super img { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(74,159,255,.3); }
+.match-row .pending {
+  margin-left: auto; background: rgba(74, 159, 255, .14); color: var(--blue);
+  padding: 3px 12px; border-radius: 999px; font-size: .74rem; font-weight: 600; white-space: nowrap;
+}
+
+/* Count badge on the "Likes You" button in the personal area. */
+.me-action-count {
+  display: inline-block; min-width: 20px; padding: 0 6px; margin-left: 6px;
+  background: var(--pink); color: #fff; border-radius: 999px;
+  font-size: .72rem; font-weight: 800; vertical-align: middle; line-height: 18px;
+}
+.me-action-count:empty { display: none; }
+
+/* A little depth on the floating top-bar buttons. */
+#adminBtn, #meBtn, #dashBtn { box-shadow: 0 6px 18px rgba(0,0,0,.35); }

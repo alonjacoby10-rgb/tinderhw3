@@ -8,6 +8,9 @@ const matchesList = document.getElementById('matchesList');
 const likesBtn = document.getElementById('likesBtn');
 const likesModal = document.getElementById('likesModal');
 const likesList = document.getElementById('likesList');
+const likedMeBtn = document.getElementById('likedMeBtn');
+const likedMeModal = document.getElementById('likedMeModal');
+const likedMeList = document.getElementById('likedMeList');
 const controls  = document.getElementById('controls');
 const searchEl  = document.getElementById('search');
 const genderSel = document.getElementById('genderFilter');
@@ -172,8 +175,23 @@ async function swipe(card, act) {
   } catch (err) {
     console.error('swipe failed:', err);
   } finally {
-    setTimeout(() => { card.remove(); markFocus(); }, 450);
+    setTimeout(() => { card.remove(); markFocus(); checkDeckEmpty(); }, 450);
   }
+}
+
+// When the last card is swiped away, show a friendly "all caught up" state.
+function checkDeckEmpty() {
+  if (grid.querySelector('.card')) return;
+  grid.innerHTML = `
+    <div class="caught-up">
+      <div class="cu-emoji">🎉</div>
+      <h3>You're all caught up!</h3>
+      <p>You've seen everyone for now. Adjust your filters or start over.</p>
+      <button id="cuReload" class="pill-btn">🔄 Start over</button>
+    </div>`;
+  statusEl.textContent = '';
+  const b = document.getElementById('cuReload');
+  if (b) b.addEventListener('click', loadProfiles);
 }
 
 // Drag-to-swipe: grab a card and throw it right (like), left (nope) or up (super).
@@ -329,6 +347,45 @@ likesModal.addEventListener('click', (e) => {
 });
 likesBtn.addEventListener('click', loadLikes);
 
+// ---- Likes You panel (who liked / superliked me) ----
+async function loadLikedMe() {
+  if (currentUserId == null) return;
+  likedMeModal.querySelector('.matches-sub').textContent = 'People who liked you';
+  likedMeList.innerHTML = '<p style="text-align:center;color:#9aa0ab">Loading…</p>';
+  likedMeModal.classList.add('open');
+
+  try {
+    const res = await fetch(`/api/liked-me/${currentUserId}`);
+    if (!res.ok) throw new Error(`Server responded ${res.status}`);
+    const people = await res.json();
+
+    if (!people.length) {
+      likedMeList.innerHTML =
+        '<p style="text-align:center;color:#9aa0ab;padding:20px">No one has liked you yet — keep your profile fresh! 💙</p>';
+      return;
+    }
+    likedMeList.innerHTML = people.map((l) => `
+      <div class="match-row${l.swipetype === 'superlike' ? ' is-super' : ''}">
+        <img src="${escapeHtml(l.photo_url) || FALLBACK_IMG}" onerror="this.src='${FALLBACK_IMG}'">
+        <div class="info">
+          <span class="mname">${escapeHtml(l.first_name)} ${escapeHtml(l.last_name)}${l.age != null ? ', ' + l.age : ''}
+            ${l.swipetype === 'superlike' ? '<span class="super-tag" title="Superliked you">⭐ Super</span>' : ''}
+          </span>
+          <span class="mcity">📍 ${escapeHtml(l.location_name) || 'Unknown'}</span>
+        </div>
+        ${l.is_mutual ? '<span class="mutual">Matched ✅</span>' : '<span class="pending">Likes you</span>'}
+      </div>`).join('');
+  } catch (err) {
+    likedMeList.innerHTML =
+      `<p style="text-align:center;color:#ff6b6b;padding:20px">⚠️ ${escapeHtml(err.message)}</p>`;
+  }
+}
+
+likedMeModal.addEventListener('click', (e) => {
+  if (e.target === likedMeModal || e.target.closest('.close-modal')) likedMeModal.classList.remove('open');
+});
+likedMeBtn.addEventListener('click', loadLikedMe);
+
 // ---- Loading ----
 // Called by auth.js right after a successful login/registration.
 window.startApp = function () {
@@ -363,6 +420,7 @@ async function loadProfiles() {
     if (legend) legend.style.display = 'flex';
     matchesBtn.style.display = '';
     likesBtn.style.display = '';
+    likedMeBtn.style.display = '';
     loadBtn.textContent = '🔄 Reload';
     applyFilters();
   } catch (err) {

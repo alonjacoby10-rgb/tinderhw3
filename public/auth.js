@@ -145,13 +145,17 @@
     meModal.classList.add('open');
 
     // Live activity counts.
+    const likedMeCount = document.getElementById('likedMeCount');
+    if (likedMeCount) likedMeCount.textContent = '';
     try {
-      const [likes, matches] = await Promise.all([
+      const [likes, matches, likedMe] = await Promise.all([
         fetch(`/api/likes/${u.user_id}`).then((r) => r.json()).catch(() => []),
         fetch(`/api/matches/${u.user_id}`).then((r) => r.json()).catch(() => []),
+        fetch(`/api/liked-me/${u.user_id}`).then((r) => r.json()).catch(() => []),
       ]);
       statLikes.textContent = Array.isArray(likes) ? likes.length : 0;
       statMatches.textContent = Array.isArray(matches) ? matches.length : 0;
+      if (likedMeCount && Array.isArray(likedMe) && likedMe.length) likedMeCount.textContent = likedMe.length;
     } catch {
       statLikes.textContent = '0';
       statMatches.textContent = '0';
@@ -223,8 +227,9 @@
   meModal.addEventListener('click', (e) => {
     if (e.target === meModal || e.target.closest('.me-x')) meModal.classList.remove('open');
   });
-  // When opening Likes/Matches from the personal area, close the personal area.
-  [likesBtn, matchesBtn].forEach((b) => b && b.addEventListener('click', () => meModal.classList.remove('open')));
+  // When opening Likes/Matches/Likes-You from the personal area, close it.
+  const likedMeBtn = document.getElementById('likedMeBtn');
+  [likesBtn, matchesBtn, likedMeBtn].forEach((b) => b && b.addEventListener('click', () => meModal.classList.remove('open')));
 
   // Re-fetch the logged-in user from the server so a cached session can never
   // show stale data (e.g. an old profile photo).

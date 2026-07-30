@@ -143,6 +143,7 @@
         </div>
         <div id="meBio" class="me-bio"></div>
         <div class="me-actions">
+          <button id="likedMeBtn" class="me-action" style="display:none">💙 Likes You <span id="likedMeCount" class="me-action-count"></span></button>
           <button id="likesBtn" class="me-action" style="display:none">💌 My Likes</button>
           <button id="matchesBtn" class="me-action" style="display:none">💕 My Matches</button>
           <button id="meEditBtn" class="me-action">✏️ Edit my profile</button>
@@ -239,6 +240,16 @@
           <button type="submit" class="primary-btn">💾 Save</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Likes You panel (incoming) -->
+  <div id="likedMeModal" class="modal-overlay">
+    <div class="modal matches-panel">
+      <h2 class="matches-title">💙 Likes You</h2>
+      <p class="matches-sub"></p>
+      <div id="likedMeList" class="matches-list"></div>
+      <button class="close-modal">Close</button>
     </div>
   </div>
 

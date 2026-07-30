@@ -519,6 +519,33 @@ app.get('/api/stats', requireAdmin, async (req, res) => {
   }
 });
 
+// GET /api/liked-me/:userId — people who liked or superliked ME (an "incoming"
+// view). Superlikes are flagged and sorted first; mutual likes are marked.
+app.get('/api/liked-me/:userId', async (req, res) => {
+  const userId = parseInt(req.params.userId, 10);
+  if (!Number.isInteger(userId)) return res.status(400).json({ error: 'userId must be an integer.' });
+  try {
+    const { rows } = await pool.query(`
+      SELECT p.user_id, p.first_name, p.last_name, p.location_name,
+             ${AGE_EXPR} AS age,
+             COALESCE(ph.url, p.profile_photo_url) AS photo_url,
+             s.swipetype, s.created_at,
+             CASE WHEN EXISTS (
+               SELECT 1 FROM swipes r
+               WHERE r.swiper_id = $1 AND r.swiped_id = s.swiper_id AND r.swipetype IN ('like','superlike')
+             ) THEN 1 ELSE 0 END AS is_mutual
+      FROM swipes s
+      JOIN profiles p ON p.user_id = s.swiper_id
+      LEFT JOIN photos ph ON p.user_id = ph.user_id AND ph.is_primary = 1
+      WHERE s.swiped_id = $1 AND s.swipetype IN ('like','superlike')
+      ORDER BY (s.swipetype = 'superlike') DESC, s.created_at DESC`, [userId]);
+    return res.status(200).json(rows);
+  } catch (err) {
+    console.error('Error in GET /api/liked-me:', err.message);
+    return res.status(503).json({ error: 'Could not fetch incoming likes.', details: err.message });
+  }
+});
+
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
 app.listen(PORT, () => {
