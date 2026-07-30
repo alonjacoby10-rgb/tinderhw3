@@ -570,14 +570,24 @@ input::placeholder, textarea::placeholder { color: #6b7280; }
    SWIPE CLARITY — legend, button tooltips, incoming superlike
    ===================================================================== */
 .swipe-legend {
-  flex-wrap: wrap; justify-content: center; gap: 8px 20px;
-  max-width: 720px; margin: 0 auto 12px; padding: 12px 18px;
+  flex-wrap: wrap; justify-content: center; gap: 10px 22px;
+  max-width: 760px; margin: 0 auto 12px; padding: 12px 18px;
   background: rgba(27, 31, 39, .55); border: 1px solid #22262f; border-radius: 14px;
 }
-.lg-item { display: inline-flex; align-items: center; gap: 7px; font-size: .88rem; font-weight: 600; color: var(--text); }
+.lg-item { display: inline-flex; align-items: center; gap: 8px; font-size: .88rem; font-weight: 600; color: var(--text); }
 .lg-item em { font-style: normal; color: var(--muted); font-weight: 400; }
-.lg-ic { font-size: 1.05rem; line-height: 1; }
-.lg-ic.super { filter: drop-shadow(0 0 4px rgba(74,159,255,.6)); }
+/* Each icon is a small circular chip so every emoji is centered identically
+   (emoji have inconsistent baselines) and it echoes the round action buttons. */
+.lg-ic {
+  flex: 0 0 auto;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: #10131a; border: 1px solid #2c313c;
+  font-size: .92rem; line-height: 1;
+}
+.lg-ic.nope  { color: var(--red); }
+.lg-ic.super { color: var(--blue); border-color: rgba(74,159,255,.4); }
+.lg-ic.like  { color: var(--green); }
 
 /* Hover tooltips that explain each action. */
 .action-btn { position: relative; }
