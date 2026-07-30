@@ -133,6 +133,7 @@
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body.error || `Server responded ${res.status}`);
       formModal.classList.remove('open');
+      if (window.toast) window.toast(editingId ? 'User updated ✓' : 'User created ✓', 'success');
       loadUsers();
     } catch (err) {
       formError.textContent = '⚠️ ' + err.message;
@@ -156,10 +157,12 @@
       const res = await fetch('/api/users/' + id, { method: 'DELETE', headers: authHeaders() });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body.error || `Server responded ${res.status}`);
+      if (window.toast) window.toast('User deleted', 'success');
       loadUsers();
     } catch (err) {
       adminStatus.className = 'admin-status error';
       adminStatus.textContent = '⚠️ ' + err.message;
+      if (window.toast) window.toast('⚠️ ' + err.message, 'error');
     }
   }
 

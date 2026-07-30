@@ -21,6 +21,21 @@ const modal     = document.getElementById('matchModal');
 
 const FALLBACK_IMG = 'https://placehold.co/400x400/1b1f27/9aa0ab?text=No+Photo';
 
+// ---- Toast notifications (shared across app.js / admin.js / auth.js) ----
+window.toast = function (msg, type = '') {
+  const wrap = document.getElementById('toast');
+  if (!wrap) return;
+  const el = document.createElement('div');
+  el.className = 'toast-item' + (type ? ' ' + type : '');
+  el.textContent = msg;
+  wrap.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => el.remove(), 300);
+  }, 2600);
+};
+
 // ---- State ----
 let allProfiles = [];     // everything from the API (source of truth)
 let currentUserId = null; // the profile "you" are acting as
@@ -47,6 +62,9 @@ function cardHtml(p) {
   return `
     <div class="card" data-id="${p.user_id}">
       <div class="photo">
+        <span class="stamp like-stamp">LIKE</span>
+        <span class="stamp nope-stamp">NOPE</span>
+        <span class="stamp super-stamp">SUPER</span>
         <img src="${escapeHtml(p.photo_url) || FALLBACK_IMG}" alt="${escapeHtml(p.first_name)}"
              onerror="this.src='${FALLBACK_IMG}'">
         <div class="name-age">
@@ -62,6 +80,7 @@ function cardHtml(p) {
         <div class="bio">${escapeHtml(p.bio) || '<em style="color:#666">No bio yet</em>'}</div>
         <div class="actions">
           <button class="action-btn nope" data-act="dislike" title="Nope (←)">✖️</button>
+          <button class="action-btn super" data-act="superlike" title="Superlike (↑)">⭐</button>
           <button class="action-btn like" data-act="like" title="Like (→)">❤️</button>
         </div>
       </div>
@@ -109,6 +128,7 @@ function renderList(list) {
   }
   grid.innerHTML = list.map(cardHtml).join('');
   statusEl.textContent = `Showing ${list.length} of ${allProfiles.length} profiles`;
+  grid.querySelectorAll('.card:not(.skeleton)').forEach(enableDrag);
   markFocus();
 }
 
@@ -120,9 +140,18 @@ function markFocus() {
 }
 
 // ---- Swiping ----
+const SWIPE_CLASS = { like: 'liked', superlike: 'superliked', dislike: 'noped' };
+
 async function swipe(card, act) {
+  if (!card || card.dataset.done) return;
+  card.dataset.done = '1';
   const swipedId = parseInt(card.dataset.id, 10);
-  card.classList.add(act === 'like' ? 'liked' : 'noped');
+  const name = card.querySelector('.name-age')?.textContent.trim().split(',')[0] || 'them';
+  card.style.transform = ''; // hand off to the CSS fly-off animation
+  card.classList.add(SWIPE_CLASS[act] || 'noped');
+
+  if (act === 'like') window.toast(`You liked ${name} ❤️`);
+  else if (act === 'superlike') window.toast(`Superliked ${name} ⭐`, 'super');
 
   try {
     const res = await fetch('/api/swipes', {
@@ -139,20 +168,64 @@ async function swipe(card, act) {
   }
 }
 
+// Drag-to-swipe: grab a card and throw it right (like), left (nope) or up (super).
+function enableDrag(card) {
+  let startX = 0, startY = 0, dx = 0, dy = 0, active = false;
+
+  card.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('.action-btn') || card.dataset.done) return;
+    active = true;
+    startX = e.clientX; startY = e.clientY; dx = 0; dy = 0;
+    card.classList.add('dragging');
+    card.setPointerCapture(e.pointerId);
+  });
+
+  card.addEventListener('pointermove', (e) => {
+    if (!active) return;
+    dx = e.clientX - startX;
+    dy = e.clientY - startY;
+    card.style.transform = `translate(${dx}px, ${dy}px) rotate(${dx / 18}deg)`;
+    const up = dy < -60 && Math.abs(dy) > Math.abs(dx);
+    card.style.setProperty('--like-op', up ? 0 : Math.max(0, Math.min(1, dx / 110)));
+    card.style.setProperty('--nope-op', up ? 0 : Math.max(0, Math.min(1, -dx / 110)));
+    card.style.setProperty('--super-op', up ? Math.max(0, Math.min(1, -dy / 120)) : 0);
+  });
+
+  const end = () => {
+    if (!active) return;
+    active = false;
+    card.classList.remove('dragging');
+    const goUp = dy < -110 && Math.abs(dy) > Math.abs(dx);
+    if (goUp) swipe(card, 'superlike');
+    else if (dx > 110) swipe(card, 'like');
+    else if (dx < -110) swipe(card, 'dislike');
+    else {
+      // Snap back.
+      card.style.transform = '';
+      card.style.setProperty('--like-op', 0);
+      card.style.setProperty('--nope-op', 0);
+      card.style.setProperty('--super-op', 0);
+    }
+  };
+  card.addEventListener('pointerup', end);
+  card.addEventListener('pointercancel', end);
+}
+
 grid.addEventListener('click', (e) => {
   const btn = e.target.closest('.action-btn');
   if (!btn) return;
   swipe(btn.closest('.card'), btn.dataset.act);
 });
 
-// Keyboard: ← = nope the focused card, → = like it.
+// Keyboard: ← = nope, → = like, ↑ = superlike (the focused card).
 document.addEventListener('keydown', (e) => {
   if (controls.style.display === 'none') return;
-  if (document.activeElement && ['INPUT', 'SELECT'].includes(document.activeElement.tagName)) return;
+  if (document.activeElement && ['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
   const card = grid.querySelector('.card.focused');
   if (!card) return;
   if (e.key === 'ArrowRight') swipe(card, 'like');
   else if (e.key === 'ArrowLeft') swipe(card, 'dislike');
+  else if (e.key === 'ArrowUp') { e.preventDefault(); swipe(card, 'superlike'); }
 });
 
 // ---- Match modal ----

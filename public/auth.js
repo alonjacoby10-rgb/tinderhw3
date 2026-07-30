@@ -10,6 +10,7 @@
   const topbar     = document.getElementById('topbar');
   const appRoot    = document.getElementById('appRoot');
   const adminBtn   = document.getElementById('adminBtn');
+  const dashBtn    = document.getElementById('dashBtn');
   const meBtn      = document.getElementById('meBtn');
 
   const tabLogin      = document.getElementById('tabLogin');
@@ -66,6 +67,7 @@
     topbar.style.display = 'flex';
     appRoot.style.display = 'block';
     adminBtn.style.display = u.is_admin ? '' : 'none';   // gear = admins only
+    dashBtn.style.display  = u.is_admin ? '' : 'none';   // insights = admins only
     setMeButtonAvatar(u.photo_url);
     if (window.startApp) window.startApp();
   }
@@ -204,6 +206,7 @@
       saveSession(meBody.user);
       setMeButtonAvatar(meBody.user.photo_url);
       openMe();
+      if (window.toast) window.toast('Profile saved ✓', 'success');
     } catch (err) {
       meError.textContent = '⚠️ ' + err.message;
     }

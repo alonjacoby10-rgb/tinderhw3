@@ -113,6 +113,24 @@ input::placeholder { color: #6b7280; }
 .card.focused { outline: 3px solid var(--pink); outline-offset: 2px; }
 .card.liked { animation: swipeRight .45s ease forwards; }
 .card.noped { animation: swipeLeft .45s ease forwards; }
+.card.superliked { animation: swipeUp .45s ease forwards; }
+
+/* While being dragged the card follows the pointer 1:1 (no transition lag). */
+.card.dragging { transition: none; cursor: grabbing; z-index: 5; box-shadow: 0 24px 60px rgba(0,0,0,.6); }
+.card { touch-action: pan-y; }
+.card .photo img { -webkit-user-drag: none; user-select: none; }
+
+/* LIKE / NOPE / SUPER stamps — opacity is driven from JS during a drag. */
+.stamp {
+  position: absolute; top: 16px; z-index: 3;
+  font-size: 1.6rem; font-weight: 900; letter-spacing: 2px;
+  padding: 4px 12px; border-radius: 10px; border: 4px solid;
+  text-transform: uppercase; pointer-events: none; opacity: 0;
+  transform: rotate(-14deg);
+}
+.like-stamp  { left: 16px;  color: var(--green); border-color: var(--green); opacity: var(--like-op, 0); }
+.nope-stamp  { right: 16px; color: var(--red);   border-color: var(--red);   transform: rotate(14deg); opacity: var(--nope-op, 0); }
+.super-stamp { left: 50%; transform: translateX(-50%) rotate(-8deg); color: var(--blue); border-color: var(--blue); opacity: var(--super-op, 0); }
 
 .card .photo { position: relative; aspect-ratio: 1 / 1; background: #12151c; }
 .card .photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -146,6 +164,9 @@ input::placeholder { color: #6b7280; }
 .nope:hover { background: rgba(255, 107, 107, .22); }
 .like { background: rgba(45, 211, 111, .12); color: var(--green); }
 .like:hover { background: rgba(45, 211, 111, .22); }
+/* Superlike is the smaller, secondary action between Nope and Like. */
+.super { flex: 0 0 46px; background: rgba(74, 159, 255, .12); color: var(--blue); }
+.super:hover { background: rgba(74, 159, 255, .22); }
 
 /* ---- Skeleton loading ---- */
 .skeleton { pointer-events: none; }
@@ -223,7 +244,7 @@ input::placeholder { color: #6b7280; }
   position: fixed; top: 18px; right: 18px; z-index: 40;
   display: flex; gap: 10px; align-items: center;
 }
-#adminBtn, #meBtn {
+#adminBtn, #meBtn, #dashBtn {
   width: 46px; height: 46px; border-radius: 50%;
   background: rgba(27, 31, 39, .85); color: var(--muted);
   border: 1px solid #2c313c; backdrop-filter: blur(6px);
@@ -233,6 +254,7 @@ input::placeholder { color: #6b7280; }
   transition: transform .2s ease, color .15s ease, border-color .15s ease;
 }
 #adminBtn:hover { transform: rotate(45deg); color: var(--blue); border-color: var(--blue); }
+#dashBtn:hover { transform: translateY(-1px); color: var(--orange); border-color: var(--orange); }
 #meBtn:hover { color: var(--pink); border-color: var(--pink); transform: translateY(-1px); }
 #meBtn.has-photo { border-color: var(--pink); border-width: 2px; }
 
@@ -313,6 +335,7 @@ input::placeholder { color: #6b7280; }
 @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 @keyframes swipeRight { to { transform: translateX(140%) rotate(18deg); opacity: 0; } }
 @keyframes swipeLeft  { to { transform: translateX(-140%) rotate(-18deg); opacity: 0; } }
+@keyframes swipeUp    { to { transform: translateY(-160%) rotate(0); opacity: 0; } }
 
 /* =====================================================================
    AUTH / LANDING SCREEN
@@ -436,4 +459,79 @@ input::placeholder { color: #6b7280; }
 .me-sep {
   color: var(--muted); font-size: .78rem; text-transform: uppercase; letter-spacing: .5px;
   border-top: 1px solid #22262f; padding-top: 12px; margin-top: 4px;
+}
+
+/* =====================================================================
+   ANALYTICS DASHBOARD
+   ===================================================================== */
+.stats-panel { max-width: 760px; width: 100%; text-align: left; max-height: 90vh; overflow-y: auto; }
+.stats-panel .admin-head h2 { -webkit-text-fill-color: initial; background: none; color: var(--text); font-size: 1.5rem; }
+
+.kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 18px; }
+.kpi {
+  background: #12151c; border: 1px solid #22262f; border-radius: 14px;
+  padding: 14px 8px; text-align: center;
+}
+.kpi b {
+  display: block; font-size: 1.7rem; font-weight: 800; color: var(--text);
+  font-variant-numeric: tabular-nums; line-height: 1.1;
+}
+.kpi span { color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .4px; }
+/* The headline metric — match rate — gets the brand gradient. */
+.kpi.accent { border-color: rgba(253,38,125,.35); background: rgba(253,38,125,.08); }
+.kpi.accent b {
+  background: linear-gradient(90deg, var(--orange), var(--pink));
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+.charts { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.chart-card {
+  background: #12151c; border: 1px solid #22262f; border-radius: 16px; padding: 16px;
+}
+.chart-card.wide { grid-column: 1 / -1; }
+.chart-card h3 {
+  font-size: .82rem; color: var(--muted); text-transform: uppercase; letter-spacing: .5px;
+  font-weight: 700; margin-bottom: 12px;
+}
+.chart-wrap { position: relative; height: 170px; }
+.chart-wrap.tall { height: 210px; }
+.chart-wrap canvas { width: 100%; height: 100%; display: block; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 10px 16px; margin-top: 12px; justify-content: center; }
+.legend .lg { display: inline-flex; align-items: center; gap: 7px; font-size: .82rem; color: #cdd2db; }
+.legend .lg i { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+
+@media (max-width: 560px) {
+  .kpi-row { grid-template-columns: repeat(3, 1fr); }
+  .charts { grid-template-columns: 1fr; }
+}
+
+/* =====================================================================
+   TOAST NOTIFICATIONS
+   ===================================================================== */
+#toast {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+  z-index: 80; display: flex; flex-direction: column; gap: 10px;
+  align-items: center; pointer-events: none;
+}
+.toast-item {
+  background: rgba(27, 31, 39, .96);
+  color: var(--text); border: 1px solid #2c313c;
+  border-left: 4px solid var(--pink);
+  padding: 12px 20px; border-radius: 12px;
+  font-size: .92rem; font-weight: 600;
+  box-shadow: 0 12px 30px rgba(0,0,0,.5);
+  backdrop-filter: blur(8px);
+  opacity: 0; transform: translateY(-14px);
+  transition: opacity .3s ease, transform .3s ease;
+  max-width: 90vw;
+}
+.toast-item.show { opacity: 1; transform: translateY(0); }
+.toast-item.success { border-left-color: var(--green); }
+.toast-item.error   { border-left-color: var(--red); }
+.toast-item.super   { border-left-color: var(--blue); }
+
+@media (prefers-reduced-motion: reduce) {
+  .card.liked, .card.noped, .card.superliked { animation-duration: .01ms; }
+  .toast-item { transition: none; }
 }

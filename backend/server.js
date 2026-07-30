@@ -449,6 +449,67 @@ app.get('/api/likes/:userId', async (req, res) => {
   }
 });
 
+// ===========================================================================
+//  ANALYTICS — aggregated insights for the admin dashboard (admin-only).
+//  Turns the raw tables into business metrics: who's on the platform,
+//  how active they are, and how well matching is working.
+// ===========================================================================
+app.get('/api/stats', requireAdmin, async (req, res) => {
+  try {
+    const [totals, byGender, ageDist, byCity, swipeKinds] = await Promise.all([
+      pool.query(`
+        SELECT
+          (SELECT COUNT(*) FROM users)::int                                          AS users,
+          (SELECT COUNT(*) FROM swipes)::int                                         AS swipes,
+          (SELECT COUNT(*) FROM swipes WHERE swipetype IN ('like','superlike'))::int AS likes,
+          (SELECT COUNT(*) FROM matches)::int                                        AS matches,
+          (SELECT COUNT(*) FROM users WHERE is_admin = 1)::int                       AS admins`),
+      pool.query(`
+        SELECT COALESCE(gender, 'O') AS gender, COUNT(*)::int AS count
+        FROM profiles GROUP BY COALESCE(gender, 'O')`),
+      pool.query(`
+        SELECT bucket, COUNT(*)::int AS count FROM (
+          SELECT CASE
+            WHEN a < 25 THEN '18–24'
+            WHEN a < 32 THEN '25–31'
+            WHEN a < 39 THEN '32–38'
+            WHEN a < 46 THEN '39–45'
+            ELSE '46+'
+          END AS bucket
+          FROM (SELECT EXTRACT(YEAR FROM AGE(birth_date))::int AS a
+                FROM profiles WHERE birth_date IS NOT NULL) t
+        ) b GROUP BY bucket`),
+      pool.query(`
+        SELECT location_name AS city, COUNT(*)::int AS count
+        FROM profiles
+        WHERE location_name IS NOT NULL AND location_name <> ''
+        GROUP BY location_name ORDER BY count DESC, city ASC LIMIT 7`),
+      pool.query(`
+        SELECT swipetype AS kind, COUNT(*)::int AS count
+        FROM swipes GROUP BY swipetype`),
+    ]);
+
+    const t = totals.rows[0];
+    const matchRate = t.likes ? Math.round((t.matches / t.likes) * 100) : 0;
+
+    // Order the age buckets consistently (SQL GROUP BY is unordered).
+    const AGE_ORDER = ['18–24', '25–31', '32–38', '39–45', '46+'];
+    const ageMap = Object.fromEntries(ageDist.rows.map((r) => [r.bucket, r.count]));
+    const ageDistribution = AGE_ORDER.map((bucket) => ({ bucket, count: ageMap[bucket] || 0 }));
+
+    return res.status(200).json({
+      totals: { ...t, matchRate },
+      byGender: byGender.rows,
+      ageDistribution,
+      byCity: byCity.rows,
+      swipeKinds: swipeKinds.rows,
+    });
+  } catch (err) {
+    console.error('Error in GET /api/stats:', err.message);
+    return res.status(503).json({ error: 'Could not compute stats.', details: err.message });
+  }
+});
+
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
 app.listen(PORT, () => {

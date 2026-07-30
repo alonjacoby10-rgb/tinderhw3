@@ -61,6 +61,7 @@
 
   <!-- ============ TOP-RIGHT BAR (shown when logged in) ============ -->
   <div id="topbar" style="display:none">
+    <button id="dashBtn" title="Insights — analytics dashboard" aria-label="Insights" style="display:none">📊</button>
     <button id="adminBtn" title="Admin — user management" aria-label="Admin" style="display:none">⚙️</button>
     <button id="meBtn" title="My area" aria-label="My area">👤</button>
   </div>
@@ -265,8 +266,48 @@
     </div>
   </div>
 
+  <!-- ============ ADMIN: analytics dashboard ============ -->
+  <div id="statsModal" class="modal-overlay">
+    <div class="modal stats-panel">
+      <div class="admin-head">
+        <h2>📊 Insights</h2>
+        <button class="close-modal stats-close" aria-label="Close">✕</button>
+      </div>
+
+      <div id="statsError" class="admin-status error" style="display:none"></div>
+
+      <div class="kpi-row" id="kpiRow">
+        <div class="kpi"><b data-kpi="users">–</b><span>Users</span></div>
+        <div class="kpi"><b data-kpi="swipes">–</b><span>Swipes</span></div>
+        <div class="kpi"><b data-kpi="likes">–</b><span>Likes</span></div>
+        <div class="kpi"><b data-kpi="matches">–</b><span>Matches</span></div>
+        <div class="kpi accent"><b data-kpi="matchRate">–</b><span>Match rate</span></div>
+      </div>
+
+      <div class="charts">
+        <div class="chart-card">
+          <h3>By gender</h3>
+          <div class="chart-wrap"><canvas id="genderChart"></canvas></div>
+          <div class="legend" id="genderLegend"></div>
+        </div>
+        <div class="chart-card">
+          <h3>Age distribution</h3>
+          <div class="chart-wrap"><canvas id="ageChart"></canvas></div>
+        </div>
+        <div class="chart-card wide">
+          <h3>Top cities</h3>
+          <div class="chart-wrap tall"><canvas id="cityChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notifications -->
+  <div id="toast" aria-live="polite"></div>
+
   <script src="app.js"></script>
   <script src="admin.js"></script>
+  <script src="dashboard.js"></script>
   <script src="auth.js"></script>
 </body>
 </html>
